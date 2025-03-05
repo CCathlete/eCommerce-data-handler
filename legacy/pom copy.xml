@@ -56,6 +56,20 @@
 			<version>5.3.9</version>
 		</dependency>
 
+		<!-- Flyway for DB migrations -->
+		<!-- <dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>9.22.3</version>
+		</dependency> -->
+
+		<!-- DBMaintain for DB migrations -->
+		<!-- <dependency>
+			<groupId>org.dbmaintain</groupId>
+			<artifactId>dbmaintain-core</artifactId>
+			<version>3.0.0</version>
+		</dependency> -->
+
 		<!-- Other dependencies as necessary -->
 	</dependencies>
 
@@ -72,7 +86,6 @@
 					<target>17</target>
 				</configuration>
 			</plugin>
-
 			<!-- Plugin for using environment variables in Maven -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -92,6 +105,30 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- DBMaintain for external use (not as a library) -->
+			<!-- <plugin>
+				<groupId>org.dbmaintain</groupId>
+				<artifactId>dbmaintain-maven-plugin</artifactId>
+				<version>2.0</version>
+				<configuration>
+				<configFile>dbmaintain.properties
+				</configFile>
+			</configuration>
+			</plugin> -->
+
+			<!-- Flyway Plugin for running database migrations -->
+			<!-- <plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>9.22.3</version>
+				<configuration>
+					<url>jdbc:mysql://127.0.0.1:${DB_PORT}/${DB_NAME}</url>
+					<user>${DB_USER}</user>
+					<password>${DB_ROOT_PASS}</password>
+					<locations>filesystem:src/main/resources/db/migrations/up</locations>
+				</configuration>
+			</plugin> -->
 
 		</plugins>
 	</build>
