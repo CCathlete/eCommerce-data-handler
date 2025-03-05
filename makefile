@@ -4,21 +4,21 @@ connect:
 # dbfile:
 # 	source .env; docker cp /home/ccat/Repos/eCommerce-data-handler/migrations/down/@{1} db:/; docker-compose exec db mysql -U ${DB_USER} -d ${DB_NAME} -f @{1}
 
-migratedown:
-	source .env; docker cp /home/ccat/Repos/eCommerce-data-handler/migrations/down/@{1} db:/; docker-compose exec db mysql -U ${DB_USER} -d ${DB_NAME} -f @{1}
-
-# migrateup:
-# 	migrate -path db/migrations -database "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose up
-
-
-# migrateup_1: # Up one migration.
-# 	migrate -path db/migrations -database "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose up 1
-
 # migratedown:
-# 	migrate -path db/migrations -database "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down
+# 	source .env; docker cp /home/ccat/Repos/eCommerce-data-handler/migrations/down/@{1} db:/; docker-compose exec db mysql -U ${DB_USER} -d ${DB_NAME} -f @{1}
 
-# migratedown_1: # Down one migration back.
-# 	migrate -path db/migrations -database "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down 1
+migrateup:
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose up
+
+
+migrateup_1: # Up one migration.
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose up 1
+
+migratedown:
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down
+
+migratedown_1: # Down one migration back.
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down 1
 
 # sqlc:
 # 	sqlc generate -f db/sqlc.yaml

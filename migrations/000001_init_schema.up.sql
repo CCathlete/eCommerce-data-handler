@@ -1,5 +1,5 @@
 create table
-  raw_date (
+  raw_data (
     id int auto_increment primary KEY,
     source varchar(255) not null,
     data json not null,
