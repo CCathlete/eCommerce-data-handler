@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  # MySQL database
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}  # Root password is required for MySQL
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - eCommerce_data_handler:/var/lib/mysql
+    networks:
+      - eCommerce_data_handler_net
+
+  # Adminer for database UI
+  adminer:
+    image: adminer
+    restart: always
+    environment:
+      ADMINER_DESIGN: dracula
+    ports: 
+      - 3333:8080
+    networks:
+      - eCommerce_data_handler_net
+
+networks:
+  eCommerce_data_handler_net:
+
+volumes:
+  eCommerce_data_handler:
