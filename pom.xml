@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Basic project information -->
+	<groupId>com.webcat</groupId>
+	<artifactId>ecommerce-data-handler</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<!-- Parent Maven settings -->
+	<dependencies>
+		<!-- JDBC MySQL Connector -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.26</version>
+		</dependency>
+
+		<!-- Hazelcast -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>4.2</version>
+		</dependency>
+
+		<!-- JUnit 5 for Testing -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.7.2</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- SLF4J for Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.30</version>
+		</dependency>
+
+		<!-- Log4j for Logging -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+
+		<!-- Spring for API -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>5.3.9</version>
+		</dependency>
+
+		<!-- Flyway for DB migrations -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>9.22.3</version>
+		</dependency>
+
+		<!-- Other dependencies as necessary -->
+	</dependencies>
+
+	<!-- Build section for compiling and packaging -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>17</source>
+					<target>17</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>set-property</goal>
+						</goals>
+						<configuration>
+							<properties>
+								<property>
+									<name>db.user</name>
+									<value>${env.DB_USER}</value>
+								</property>
+								<property>
+									<name>db.password</name>
+									<value>${env.DB_PASS}</value>
+								</property>
+								<property>
+									<name>db.host</name>
+									<value>${env.DB_HOST}</value>
+								</property>
+								<property>
+									<name>db.port</name>
+									<value>${env.DB_PORT}</value>
+								</property>
+								<property>
+									<name>db.name</name>
+									<value>${env.DB_NAME}</value>
+								</property>
+							</properties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>9.0.1</version>
+				<configuration>
+					<url>jdbc:mysql://${db.host}:${db.port}/${db.name}</url>
+					<user>${db.user}</user>
+					<password>${db.password}</password>
+					<schemas>public</schemas>
+					<locations>
+						<location>classpath:db/migration</location>
+					</locations>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>
