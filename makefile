@@ -12,13 +12,13 @@ migrateup:
 
 
 migrateup_1: # Up one migration.
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose up 1
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose up 1
 
 migratedown:
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose down
 
 migratedown_1: # Down one migration back.
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down 1
+	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose down 1
 
 # sqlc:
 # 	sqlc generate -f db/sqlc.yaml
