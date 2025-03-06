@@ -8,17 +8,17 @@ connect:
 # 	source .env; docker cp /home/ccat/Repos/eCommerce-data-handler/migrations/down/@{1} db:/; docker-compose exec db mysql -U ${DB_USER} -d ${DB_NAME} -f @{1}
 
 migrateup:
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose up
+	migrate -path src/main/resources/migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose up
 
 
 migrateup_1: # Up one migration.
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose up 1
+	migrate -path src/main/resources/migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose up 1
 
 migratedown:
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose down
+	migrate -path src/main/resources/migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose down
 
 migratedown_1: # Down one migration back.
-	migrate -path migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose down 1
+	migrate -path src/main/resources/migrations -database "mysql://${DB_USER}:${DB_ROOT_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}" -verbose down 1
 
 # sqlc:
 # 	sqlc generate -f db/sqlc.yaml
