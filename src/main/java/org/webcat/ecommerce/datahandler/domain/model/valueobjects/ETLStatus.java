@@ -1,5 +1,5 @@
-package domain.model.valueobjects;
+package org.webcat.ecommerce.datahandler.domain.model.valueobjects;
 
-public class ETLStatus {
-
+public enum ETLStatus {
+  EXTRACTED, TRANSFORMED, LOADED, FAILED
 }
