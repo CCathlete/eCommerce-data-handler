@@ -244,7 +244,7 @@ public class ETLResponseDTO {
 ### **📌 Add Spring Beans**
 Now, let's annotate relevant classes with Spring **`@Service`**, **`@Repository`**, and **`@Component`**.
 
-#### **Application Layer (Service Bean)**
+#### **Domain Layer (Service Bean)**
 ```java
 package org.webcat.ecommerce.datahandler.domain.service;
 
