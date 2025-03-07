@@ -171,3 +171,126 @@ public class DataUtils {
 ### **Next Steps**
 1. Do you want **Spring Beans (@Service, @Repository, @Component)** already, or wait until implementation?
 2. Would you like to define **DTOs (Data Transfer Objects)** now, or later?
+
+Yes, DTOs should go in the **application layer** since they serve as **data contracts** between layers (typically between controllers and services).  
+
+---
+
+### **📁 Where to Put DTOs?**  
+Create a package inside `application` for DTOs:  
+
+📂 `org.webcat.ecommerce.datahandler.application.dto`  
+
+---
+
+### **📌 Define DTOs**  
+
+#### **ETL DTOs**  
+```java
+package org.webcat.ecommerce.datahandler.application.dto;
+
+public class ETLRequestDTO {
+    private Long rawDataId;
+
+    public ETLRequestDTO() {}
+
+    public ETLRequestDTO(Long rawDataId) {
+        this.rawDataId = rawDataId;
+    }
+
+    public Long getRawDataId() {
+        return rawDataId;
+    }
+
+    public void setRawDataId(Long rawDataId) {
+        this.rawDataId = rawDataId;
+    }
+}
+```
+```java
+package org.webcat.ecommerce.datahandler.application.dto;
+
+public class ETLResponseDTO {
+    private Long processedDataId;
+    private String status;
+
+    public ETLResponseDTO() {}
+
+    public ETLResponseDTO(Long processedDataId, String status) {
+        this.processedDataId = processedDataId;
+        this.status = status;
+    }
+
+    public Long getProcessedDataId() {
+        return processedDataId;
+    }
+
+    public void setProcessedDataId(Long processedDataId) {
+        this.processedDataId = processedDataId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+}
+```
+
+---
+
+### **📌 Add Spring Beans**
+Now, let's annotate relevant classes with Spring **`@Service`**, **`@Repository`**, and **`@Component`**.
+
+#### **Application Layer (Service Bean)**
+```java
+package org.webcat.ecommerce.datahandler.domain.service;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class ETLServiceImpl implements ETLService {
+    @Override
+    public void runETL() {
+        // ETL process logic will go here
+    }
+}
+```
+
+---
+
+#### **Infrastructure Layer (Repository Beans)**
+```java
+package org.webcat.ecommerce.datahandler.infrastructure.database;
+
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class MySQLRawDataRepository implements RawDataRepository {
+    @Override
+    public RawData findById(Long id) {
+        return null; // Database logic will be added later
+    }
+}
+```
+```java
+package org.webcat.ecommerce.datahandler.infrastructure.database;
+
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class MySQLProcessedDataRepository implements ProcessedDataRepository {
+    @Override
+    public ProcessedData findById(Long id) {
+        return null; // Database logic will be added later
+    }
+}
+```
+
+---
+
+### **📌 Next Steps**
+1. **Do you want to add REST controllers (`@RestController`) now or later?**
+2. **Do you plan to use Spring Data JPA for repositories?**
