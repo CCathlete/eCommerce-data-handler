@@ -1,6 +1,24 @@
 package org.webcat.ecommerce.datahandler.domain.model.entities;
 
-public class ProcessedData {
+public class ProcessedData
+{
   private Long id;
-  private String processedContent;
+  private String content;
+
+  public ProcessedData(Long id,
+      String content)
+  {
+    this.id = id;
+    this.content = content;
+  }
+
+  public Long getID()
+  {
+    return this.id;
+  }
+
+  public String getContent()
+  {
+    return this.content;
+  }
 }

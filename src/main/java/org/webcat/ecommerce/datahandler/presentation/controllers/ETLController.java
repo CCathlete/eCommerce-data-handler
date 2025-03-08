@@ -8,30 +8,47 @@ import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
 import org.webcat.ecommerce.datahandler.application.use_cases.interfaces.ETL;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/etl")
-public class ETLController {
+public class ETLController
+{
 
   private final ETL etlUseCase;
 
-  public ETLController(ETL etlUseCase) {
+  public ETLController(ETL etlUseCase)
+  {
     this.etlUseCase = etlUseCase;
   }
 
   // Handler for starting the etl process.
   @PostMapping("path")
-  public ResponseEntity<ETLResponseDTO> processData(
-      @RequestBody ETLRequestDTO request) {
+  public ResponseEntity<ETLResponseDTO> sendToETL(
+      @RequestBody ETLRequestDTO request)
+  {
 
-    ETLResponseDTO response = this.etlUseCase.runETL(request);
-    if (response == null) {
-      return ResponseEntity.badRequest().build();
+    ETLResponseDTO response =
+        this.etlUseCase.runETL(request);
+
+    if (response == null)
+    {
+      return ResponseEntity.badRequest()
+          .build();
     }
 
     return ResponseEntity.ok(response);
   }
 
-  //
+  // Handler for chacking the status of the etl process.
+  @GetMapping("/status/{processID}")
+  public ResponseEntity<ETLResponseDTO> checkETLStatus(
+      @RequestParam String processID)
+  {
+
+    return ResponseEntity.ok(etlUseCase
+        .checkETLStatus(processID));
+  }
 
 }
