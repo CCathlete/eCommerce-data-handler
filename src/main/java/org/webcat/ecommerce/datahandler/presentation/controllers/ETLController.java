@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-@RequestMapping("/api/etl")
+@RequestMapping("/etl")
 public class ETLController
 {
 
@@ -24,7 +24,7 @@ public class ETLController
   }
 
   // Handler for starting the etl process.
-  @PostMapping("path")
+  @PostMapping("/run")
   public ResponseEntity<ETLResponseDTO> sendToETL(
       @RequestBody ETLRequestDTO request)
   {
@@ -41,7 +41,7 @@ public class ETLController
     return ResponseEntity.ok(response);
   }
 
-  // Handler for chacking the status of the etl process.
+  // Handler for checking the status of the etl process.
   @GetMapping("/status/{processID}")
   public ResponseEntity<ETLResponseDTO> checkETLStatus(
       @RequestParam String processID)

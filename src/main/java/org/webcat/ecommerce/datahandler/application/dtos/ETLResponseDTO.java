@@ -1,5 +1,7 @@
 package org.webcat.ecommerce.datahandler.application.dtos;
 
+import org.webcat.ecommerce.datahandler.domain.model.valueobjects.ETLStatus;
+
 /**
  *
  * ETLResponseDTO
@@ -16,7 +18,7 @@ package org.webcat.ecommerce.datahandler.application.dtos;
 public class ETLResponseDTO
 {
   private Long processedDataId;
-  private String status;
+  private ETLStatus status;
   private Boolean success;
 
   public ETLResponseDTO()
@@ -29,7 +31,7 @@ public class ETLResponseDTO
    */
   public ETLResponseDTO(
       Long processedDataId,
-      String status)
+      ETLStatus status)
   {
     this.processedDataId =
         processedDataId;
@@ -49,13 +51,13 @@ public class ETLResponseDTO
         processedDataId;
   }
 
-  public String getStatus()
+  public ETLStatus getStatus()
   {
     return this.status;
   }
 
   public ETLResponseDTO setStatus(
-      String status)
+      ETLStatus status)
   {
     this.status = status;
     return this;

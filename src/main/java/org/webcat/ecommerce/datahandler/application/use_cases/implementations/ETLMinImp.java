@@ -3,6 +3,7 @@ package org.webcat.ecommerce.datahandler.application.use_cases.implementations;
 import org.webcat.ecommerce.datahandler.application.use_cases.interfaces.ETL;
 import org.webcat.ecommerce.datahandler.domain.model.entities.ProcessedData;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
+import org.webcat.ecommerce.datahandler.domain.model.valueobjects.ETLStatus;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.LoadData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.TransformData;
@@ -63,7 +64,7 @@ public class ETLMinImp implements ETL
 
     return new ETLResponseDTO(
         processedData.getID(),
-        "ETL completed successfully")
+        ETLStatus.LOADED)
             .setSuccess(success);
   }
 
