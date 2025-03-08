@@ -28,6 +28,18 @@ services:
     networks:
       - eCommerce_data_handler_net
 
+  # MinIO as an S3-compatible (raw)data lake.
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASS}
+    command: server /data --console-address ":9001"
+
 networks:
   eCommerce_data_handler_net:
 

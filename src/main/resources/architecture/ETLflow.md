@@ -112,3 +112,97 @@ public class Application {
    ```
 ---
 This should give you a working **ETL pipeline POC**. What's next?
+
+For a **realistic but local** setup, you can:  
+
+### 1️⃣ **Use MinIO for a Local Data Lake**  
+MinIO is an S3-compatible object store that runs locally. It mimics AWS S3.  
+- Store raw data as **JSON, CSV, or Parquet** files in MinIO.  
+- The `RawDataRepository` will interact with MinIO instead of MySQL.  
+
+### 2️⃣ **Keep MySQL as the Data Warehouse**  
+- Processed data should be stored in **MySQL**, simulating a data warehouse.  
+- `ProcessedDataRepository` stays in MySQL.  
+
+---
+
+### **Implementation Plan**  
+
+✅ **Step 1: Run MinIO locally (Docker)**  
+Add this to `docker-compose.yaml`:  
+
+```yaml
+version: '3.8'
+services:
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+```
+Access MinIO UI at `http://localhost:9001` (user: `minioadmin`, password: `minioadmin`).  
+
+✅ **Step 2: Add MinIO Client SDK (Spring Boot Example)**  
+```xml
+<dependency>
+    <groupId>io.minio</groupId>
+    <artifactId>minio</artifactId>
+    <version>8.5.7</version>
+</dependency>
+```
+
+✅ **Step 3: Implement `RawDataRepository` (MinIO)**  
+```java
+import io.minio.*;
+import io.minio.errors.*;
+import java.io.InputStream;
+
+public class MinIORawDataRepository implements RawDataRepository {
+    private final MinioClient minioClient;
+    private final String bucketName = "raw-data";
+
+    public MinIORawDataRepository() {
+        this.minioClient = MinioClient.builder()
+            .endpoint("http://localhost:9000")
+            .credentials("minioadmin", "minioadmin")
+            .build();
+    }
+
+    public void saveRawData(String objectName, InputStream data) throws Exception {
+        minioClient.putObject(
+            PutObjectArgs.builder()
+                .bucket(bucketName)
+                .object(objectName)
+                .stream(data, -1, 10485760)
+                .contentType("application/json")
+                .build()
+        );
+    }
+
+    public InputStream getRawData(String objectName) throws Exception {
+        return minioClient.getObject(
+            GetObjectArgs.builder().bucket(bucketName).object(objectName).build()
+        );
+    }
+}
+```
+This stores raw data **as JSON in MinIO**, instead of MySQL.  
+
+✅ **Step 4: ProcessedDataRepository (MySQL stays the same)**  
+- The **ProcessedDataRepository** continues using MySQL for structured, optimized data.  
+- The **Transform service** loads from `RawDataRepository`, processes it, and saves to `ProcessedDataRepository`.  
+
+---
+
+### **Summary: Realistic Local Setup**  
+✅ **MinIO** → Raw Data (like a Data Lake)  
+✅ **MySQL** → Processed Data (like a Data Warehouse)  
+✅ **ETL Flow**: **Extract (MinIO) → Transform → Load (MySQL)**  
+
+This keeps your setup **realistic** while still being **fully local**. 🚀  
+Would you like to extend this with specific file formats like Parquet?
