@@ -63,7 +63,7 @@ public class ETLMinImp implements ETL
     }
 
     return new ETLResponseDTO(
-        processedData.getID(),
+        processedData.getId(),
         ETLStatus.LOADED)
             .setSuccess(success);
   }
