@@ -206,3 +206,107 @@ This stores raw data **as JSON in MinIO**, instead of MySQL.
 
 This keeps your setup **realistic** while still being **fully local**. 🚀  
 Would you like to extend this with specific file formats like Parquet?
+
+Got it! We'll start with **ID-encoded object names** in MinIO while keeping the code modular so you can later switch to an SQL mapping.  
+
+<h2>Encoding the id in the object name</h2>
+
+### **Plan**  
+1. **Define a method to generate object names** → `data_{id}.json`  
+2. **Implement MinIO file storage & retrieval**  
+3. **Use an interface** to keep it modular for future SQL integration  
+
+---
+
+### **1. Define the Object Naming Strategy**  
+We'll use a function to generate object names from IDs:  
+
+```java
+public class ObjectNameGenerator {
+    public static String generateObjectName(String id) {
+        return "raw-data/" + id + ".json"; 
+    }
+}
+```
+
+This ensures **all IDs map consistently** to object names.
+
+---
+
+### **2. Implement MinIO Storage & Retrieval**  
+Now, we add MinIO methods using this naming convention.  
+You can convert an `InputStream` to a `RawData` entity using **Jackson** (`ObjectMapper`) if `RawData` is a POJO. Here's how:  
+
+### **1. Convert `InputStream` to `RawData`**
+If `RawData` is stored as JSON in MinIO, use Jackson to deserialize it:  
+
+```java
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
+import java.io.InputStream;
+
+public class MinioRawDataRepository implements RawDataRepository {
+    private final MinioClient minioClient;
+    private final String bucketName = "raw-data-bucket";
+    private final ObjectMapper objectMapper = new ObjectMapper(); // Jackson object mapper
+
+    public MinioRawDataRepository(String endpoint, String accessKey, String secretKey) {
+        this.minioClient = MinioClient.builder()
+            .endpoint(endpoint)
+            .credentials(accessKey, secretKey)
+            .build();
+    }
+
+    @Override
+    public RawData findById(Long id) {
+        try {
+            String objectName = ObjectNameGenerator.generate(id);
+            InputStream inputStream = minioClient.getObject(
+                GetObjectArgs.builder().bucket(bucketName).object(objectName).build()
+            );
+
+            // Convert InputStream to RawData
+            return objectMapper.readValue(inputStream, RawData.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch raw data for ID: " + id, e);
+        }
+    }
+
+    @Override
+    public Boolean save(RawData rawData) {
+        try {
+            String objectName = ObjectNameGenerator.generate(rawData.getId());
+            String json = objectMapper.writeValueAsString(rawData);
+            InputStream dataStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+
+            minioClient.putObject(
+                io.minio.PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .stream(dataStream, json.length(), -1)
+                    .contentType("application/json")
+                    .build()
+            );
+
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save raw data", e);
+        }
+    }
+
+    private static class ObjectNameGenerator {
+        static String generate(Long id) {
+            return "raw-data/" + id + ".json";
+        }
+    }
+}
+```
+
+### **Why Keep the Interface?**
+- **No need to change `RawDataRepository`** – you just handle deserialization in the implementation.  
+- **Jackson converts `InputStream` → `RawData`** transparently.  
+- **Keeps the API clean** while allowing efficient MinIO integration.  
+
+Would you like a different serialization format (e.g., XML or binary)? 🚀
