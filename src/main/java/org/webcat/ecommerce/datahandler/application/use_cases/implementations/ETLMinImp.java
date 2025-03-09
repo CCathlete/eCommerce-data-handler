@@ -7,9 +7,11 @@ import org.webcat.ecommerce.datahandler.domain.model.valueobjects.ETLStatus;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.LoadData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.TransformData;
+import org.springframework.stereotype.Component;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLRequestDTO;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
 
+@Component
 public class ETLMinImp implements ETL
 {
 
