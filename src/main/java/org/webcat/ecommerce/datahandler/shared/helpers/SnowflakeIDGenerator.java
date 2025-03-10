@@ -8,9 +8,9 @@ public class SnowflakeIDGenerator
   private final Long epoch =
       1741611497L; // Monday, 10 March 2025 13:58:17 GMT+01:00
 
-  // This makes the snoflake id unique over multiple data centers.
+  // This makes the snowflake id unique over multiple data centers.
   private final Long datacenterId;
-  // This makes the snoflake id unique over multiple machines/servers.
+  // This makes the snowflake id unique over multiple machines/servers.
   private final Long machineId;
   // In case the same machine generates multiple ids in the same millisecond, we use a counter to
   // create a unique id.
