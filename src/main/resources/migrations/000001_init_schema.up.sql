@@ -9,7 +9,7 @@
 create table
   processed_data (
     id int auto_increment primary key,
-    raw_data_id int not null,
+    raw_data_id int not null unique,
     transformed_data json not null,
     status enum ('pending', 'success', 'failed') not null,
     processed_at timestamp default current_timestamp
