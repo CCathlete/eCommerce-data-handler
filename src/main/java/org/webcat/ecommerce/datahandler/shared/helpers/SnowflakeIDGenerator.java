@@ -3,29 +3,41 @@ package org.webcat.ecommerce.datahandler.shared.helpers;
 public class SnowflakeIDGenerator
 {
 
+  // A custom starting time (in milliseconds), we will always take a timestamp of (now - epoch).
+  // We take the time difference so the time would be smaller than using full Unix timestamps.
   private final Long epoch =
       1741611497L; // Monday, 10 March 2025 13:58:17 GMT+01:00
 
-  private final Long machineId;
+  // This makes the snoflake id unique over multiple data centers.
   private final Long datacenterId;
-  private final Long sequenceBits = 12L;
-  private final Long machineIdBits = 5L;
-  private final Long datacenterIdBits =
-      5L;
+  // This makes the snoflake id unique over multiple machines/servers.
+  private final Long machineId;
+  // In case the same machine generates multiple ids in the same millisecond, we use a counter to
+  // create a unique id.
+  private Long sequence = 0L;
+
+  private final Integer sequenceBits =
+      12;
+  private final Integer machineIdBits =
+      5;
+  private final Integer datacenterIdBits =
+      5;
 
   // The max binary number for the id is the left shift (next higher power of 2) minus 1, so that the
   // higher power we just added turns to zero and the bits to the right of it are 1.
   private final Long maxMachineId =
-      (1L << machineIdBits) - 1L;
+      (1L << this.machineIdBits) - 1L;
 
   private final Long maxDatacenterId =
-      (1L << datacenterIdBits) - 1L;
+      (1L << this.datacenterIdBits)
+          - 1L;
 
+  // A bitmask that limits the sequence number to sequenceBits bits.
+  // Example (0b111111111111) for sequenceBits = 12.
   private final Long sequenceMask =
-      (1L << sequenceBits) - 1L;
+      (1L << this.sequenceBits) - 1L; // left shift - 1 = max number within the range of sequenceBits.
 
   private Long previousTimestamp = -1L;
-  private Long sequence = 0L;
 
   public SnowflakeIDGenerator(
       Long datacenterId, Long machineId)
