@@ -18,10 +18,11 @@ public class RawData
   private Long id;
   private String rawContent;
 
-  public RawData(Long id,
-      String rawContent)
+  public RawData(String rawContent)
   {
-    this.id = id;
+    // Generates a unique id at time of creation.
+    this.id =
+        System.currentTimeMillis();
     this.rawContent = rawContent;
   }
 

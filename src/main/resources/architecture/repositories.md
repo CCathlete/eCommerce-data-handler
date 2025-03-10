@@ -338,6 +338,10 @@ public class ETLUseCase {
 @Table(name = "processed_data")
 public class ProcessedData {
 
+    public enum Status {
+        PENDING, SUCCESS, FAILED
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -354,11 +358,5 @@ public class ProcessedData {
 
     @Column(name = "processed_at", updatable = false, insertable = false)
     private Timestamp processedAt;
-
-    public enum Status {
-        PENDING, SUCCESS, FAILED
-    }
-
-    // Getters & setters
 }
 ```
