@@ -329,3 +329,36 @@ public class ETLUseCase {
 ✅ The **ETL use case orchestrates** the Extract, Transform, and Load process.
 
 ---
+
+
+<h1>Creating the entities to fit the tables</h1>
+
+```java
+@Entity
+@Table(name = "processed_data")
+public class ProcessedData {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "raw_data_key", nullable = false, unique = true)
+    private String rawDataKey;  // Stores the MinIO object key instead of a DB foreign key
+
+    @Column(nullable = false, columnDefinition = "JSON")
+    private String transformedData;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status;
+
+    @Column(name = "processed_at", updatable = false, insertable = false)
+    private Timestamp processedAt;
+
+    public enum Status {
+        PENDING, SUCCESS, FAILED
+    }
+
+    // Getters & setters
+}
+```

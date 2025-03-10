@@ -1,3 +1,3 @@
-alter table processed_data if exists
+alter table processed_data
 drop column quality_score
 ;

@@ -1,9 +1,8 @@
-drop table if exists raw_data
-;
-
 drop table if exists processed_data
 ;
 
+-- drop table if exists raw_data
+-- ;
 -- -- Declare variable for SQL statement
 -- SET @sql_statement = '';
 -- -- Generate the SQL to drop the foreign key if it exists
