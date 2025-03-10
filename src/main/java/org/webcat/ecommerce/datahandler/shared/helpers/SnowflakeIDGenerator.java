@@ -37,6 +37,17 @@ public class SnowflakeIDGenerator
   private final Long sequenceMask =
       (1L << this.sequenceBits) - 1L; // left shift - 1 = max number within the range of sequenceBits.
 
+  // The last timestamp used to generate an ID.
+  // If the current timestamp is the same as the last timestamp, we do one of 3 things:
+
+  // 1. Increment the sequence number (if still in the same millisecond).
+
+  // 2. Wait until the next millisecond
+  // (if after incrementing and filtering with the mask, the
+  // sequence number is 0, i.e. the sequence has overflowed,
+  // we have to wait for the next millisecond).
+
+  // 3. Reset the sequence number (if a new millisecond has started).
   private Long previousTimestamp = -1L;
 
   public SnowflakeIDGenerator(
@@ -59,7 +70,7 @@ public class SnowflakeIDGenerator
     this.machineId = machineId;
   }
 
-  // The synchromized keyword locks the method so that only one
+  // The synchronized keyword locks the method so that only one
   // thread can access it at a time if multiple threads use the same
   // generator instance.
   public synchronized Long generateId()
@@ -76,28 +87,40 @@ public class SnowflakeIDGenerator
     // If this is the same millisecond as the last time, increment the sequence.
     if (timestamp == this.previousTimestamp)
     {
-      // Why are we doing this?
+      /**
+       * Explanation in the def of {@link previousTimestamp}
+       */
       this.sequence =
+          // Bitwise AND with the mask cuts overflowed bits.
           (this.sequence + 1)
               & sequenceMask;
       if (this.sequence == 0L)
       {
-        timestamp =
+        Long initialMillisecond =
             System.currentTimeMillis();
-        while (timestamp <= this.previousTimestamp)
+        while (System
+            .currentTimeMillis() <= initialMillisecond)
         {
-          // In case there was a clock change and the time was reset
-          // backwards, we're waiting until we reach
-          // the previous timestamp.
+          // In case the sequence has overflowed, we need to wait until the next millisecond.
         }
       }
     } else
     {
+      // If this is a new millisecond, reset the sequence to 0.
       this.sequence = 0L;
     }
 
     this.previousTimestamp = timestamp;
 
+    // The snowflake ID is a 64-bit integer made of:
+    // 1. Timestamp (12 bits)
+    // 2. Datacenter ID (5 bits)
+    // 3. Machine ID (5 bits)
+    // 4. Sequence (12 bits)
+    // The bitwise OR is a binary addition (without carry)
+    // and the left shift takes the entire binary number and puts it to the left while there are zeroes
+    // in the original place.
+    // Than way, it makes room for another number to squeeze in.
     return ((timestamp
         - epoch) << (this.machineIdBits
             + this.datacenterIdBits

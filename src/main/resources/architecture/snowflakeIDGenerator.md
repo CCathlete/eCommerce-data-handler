@@ -220,11 +220,12 @@ if (this.sequence == 0L)
 
 ### **Waiting for the Next Millisecond (Clock Forward)**
 ```java
-timestamp = System.currentTimeMillis();
-while (timestamp <= this.previousTimestamp)
+Long initialMillisecond =
+    System.currentTimeMillis();
+while (System
+    .currentTimeMillis() <= initialMillisecond)
 {
-  // In case there was a clock change and the time was reset backwards,
-  // we're waiting until we reach the previous timestamp.
+  // In case the sequence has overflowed, we need to wait until the next millisecond.
 }
 ```
 - This forces the system to **wait** until `System.currentTimeMillis()` **moves to the next millisecond**.
