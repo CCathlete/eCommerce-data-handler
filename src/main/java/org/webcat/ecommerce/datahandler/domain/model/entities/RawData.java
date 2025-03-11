@@ -1,5 +1,7 @@
 package org.webcat.ecommerce.datahandler.domain.model.entities;
 
+import org.webcat.ecommerce.datahandler.shared.helpers.SnowflakeIDGenerator;
+
 /**
  *
  * {@link RawData}
@@ -17,12 +19,14 @@ public class RawData
 {
   private Long id;
   private String rawContent;
+  private static final SnowflakeIDGenerator idGenerator =
+      new SnowflakeIDGenerator(1, 1);
 
   public RawData(String rawContent)
   {
     // Generates a unique id at time of creation.
-    this.id =
-        System.currentTimeMillis();
+    this.id = RawData.idGenerator
+        .generateId();
     this.rawContent = rawContent;
   }
 

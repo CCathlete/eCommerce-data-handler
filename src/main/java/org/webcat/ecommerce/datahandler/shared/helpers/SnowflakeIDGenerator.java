@@ -9,9 +9,9 @@ public class SnowflakeIDGenerator
       1741611497L; // Monday, 10 March 2025 13:58:17 GMT+01:00
 
   // This makes the snowflake id unique over multiple data centers.
-  private final Long datacenterId;
+  private final Integer datacenterId;
   // This makes the snowflake id unique over multiple machines/servers.
-  private final Long machineId;
+  private final Integer machineId;
   // In case the same machine generates multiple ids in the same millisecond, we use a counter to
   // create a unique id.
   private Long sequence = 0L;
@@ -25,12 +25,11 @@ public class SnowflakeIDGenerator
 
   // The max binary number for the id is the left shift (next higher power of 2) minus 1, so that the
   // higher power we just added turns to zero and the bits to the right of it are 1.
-  private final Long maxMachineId =
-      (1L << this.machineIdBits) - 1L;
+  private final Integer maxMachineId =
+      (1 << this.machineIdBits) - 1;
 
-  private final Long maxDatacenterId =
-      (1L << this.datacenterIdBits)
-          - 1L;
+  private final Integer maxDatacenterId =
+      (1 << this.datacenterIdBits) - 1;
 
   // A bitmask that limits the sequence number to sequenceBits bits.
   // Example (0b111111111111) for sequenceBits = 12.
@@ -51,17 +50,18 @@ public class SnowflakeIDGenerator
   private Long previousTimestamp = -1L;
 
   public SnowflakeIDGenerator(
-      Long datacenterId, Long machineId)
+      Integer datacenterId,
+      Integer machineId)
   {
     if (machineId > this.maxMachineId
-        || machineId < 0L)
+        || machineId < 0)
     {
       throw new IllegalArgumentException(
           "Machine ID out of range");
     }
 
     if (datacenterId > this.maxDatacenterId
-        || datacenterId < 0L)
+        || datacenterId < 0)
     {
       throw new IllegalArgumentException(
           "Datacenter ID out of range");
