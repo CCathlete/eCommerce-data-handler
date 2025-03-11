@@ -14,12 +14,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * A domain entity that represents processed data.
+ * <h4>Fields:</h4>
+ * <li>{@field Long id} (not passed to the constructor)</li>
+ * <li>{@field Long rawDataId}</li>
+ * <li>{@field String transformedData}</li>
+ * <li>{@field Status status}</li>
+ * <li>{@field Timestamp processedAt}</li>
+ */
 @Entity
 @Table(name = "processed_data")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ProcessedData
 {
 
@@ -41,7 +49,8 @@ public class ProcessedData
 
   // The content after transformation (processing) in a json
   // string format.
-  @Column(nullable = false,
+  @Column(name = "transformed_data",
+      nullable = false,
       columnDefinition = "JSON")
   private String transformedData;
 
@@ -55,5 +64,20 @@ public class ProcessedData
       updatable = false,
       insertable = false)
   private Timestamp processedAt;
+
+  // Since some of the variables are @GeneratedValue, Lombok's automatic @AllArgeConstructor doesn't
+  // work.
+  public ProcessedData(Long rawId,
+      String transformedData,
+      Status status,
+      Timestamp processedAt)
+  {
+
+    this.rawDataId = rawId;
+    this.transformedData =
+        transformedData;
+    this.status = status;
+    this.processedAt = processedAt;
+  }
 
 }
