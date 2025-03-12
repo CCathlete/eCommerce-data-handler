@@ -1,16 +1,12 @@
-!# /bin/bash
+#! /bin/bash
 
-source .env
+export $(cat .env | xargs)
 
-# Create a webhook
-curl -X POST "http://$MINIO_HOST:$MINIO_API_PORT/minio/admin/v3/add/webhook" \
-  -H "Content-Type: application/json" \
-  --user "$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY" \
-  -d '{
-    "config": {
-      "endpoint": "http://127.0.0.1:8080/etl/webhook",
-      "queueDir": "/tmp/minio-events",
-      "queueLimit": 100000
-    },
-    "comment": "Send events to ETL service"
-  }'
+cat /home/ccat/Repos/eCommerce-data-handler/src/test/java/org/webcat/ecommerce/datahandler/shared/test-doc-1.json
+
+printf "\n\n$MINIO_HOST:$MINIO_API_PORT\n\n"
+
+# Won't work, it needs encryption to pass the keys.
+curl -X PUT --upload-file /home/ccat/Repos/eCommerce-data-handler/src/test/java/org/webcat/ecommerce/datahandler/shared/test-doc-1.json \
+    http://$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY@$MINIO_HOST:$MINIO_API_PORT/$CURRENT_BUCKET/test-doc-1.json
+

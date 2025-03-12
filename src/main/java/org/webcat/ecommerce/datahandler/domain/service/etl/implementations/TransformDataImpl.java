@@ -2,10 +2,12 @@ package org.webcat.ecommerce.datahandler.domain.service.etl.implementations;
 
 import java.sql.Timestamp;
 
+import org.springframework.stereotype.Service;
 import org.webcat.ecommerce.datahandler.domain.model.entities.ProcessedData;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.TransformData;
 
+@Service
 public class TransformDataImpl
     implements TransformData
 {

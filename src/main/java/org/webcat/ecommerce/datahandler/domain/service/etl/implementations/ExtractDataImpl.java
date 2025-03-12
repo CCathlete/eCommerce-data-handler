@@ -1,9 +1,11 @@
 package org.webcat.ecommerce.datahandler.domain.service.etl.implementations;
 
+import org.springframework.stereotype.Service;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
 import org.webcat.ecommerce.datahandler.infrastructure.repository.RawDataRepository;
 
+@Service
 /**
  * {@link ExtractDataImpl}
  * <p>

@@ -52,12 +52,27 @@ public class MinIORawDataRepository
   // Constructor.
   public MinIORawDataRepository()
   {
+    // System.out.println("MINIO_HOST: "
+    // + env.get("MINIO_HOST"));
+    // System.out.println("MINIO_PORT: "
+    // + env.get("MINIO_PORT"));
+    // System.out.println(
+    // "MINIO_ACCESS_KEY: " + env
+    // .get("MINIO_ACCESS_KEY"));
+    // System.out.println(
+    // "MINIO_SECRET_KEY: " + env
+    // .get("MINIO_SECRET_KEY"));
+
+    // Instantiating minio client.
     this.lakeClient = MinioClient
         .builder()
-        .endpoint(env.get("MINIO_URL"))
+        .endpoint("http://"
+            + env.get("MINIO_HOST")
+            + ":"
+            + env.get("MINIO_API_PORT"))
         .credentials(
-            env.get("MINIO_USER"),
-            env.get("MINIO_PASS"))
+            env.get("MINIO_ACCESS_KEY"),
+            env.get("MINIO_SECRET_KEY"))
         .build();
   }
 
