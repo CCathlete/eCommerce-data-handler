@@ -1,149 +1,144 @@
-Great choice! 🚀 Let's implement the **MinIO Event Listener** to automatically rename uploaded files with Snowflake IDs.  
+### **Configuring a MinIO Webhook (Using cURL, No `mc`)**  
+
+MinIO supports **event notifications** via webhooks. You'll configure MinIO to send an HTTP POST request to your API whenever a file is uploaded.
 
 ---
 
-## **Step 1: Enable MinIO Event Notifications**  
-MinIO supports event notifications via webhooks. We’ll configure it to send `PUT` (upload) events to our Spring Boot API.  
+### **Step 1: Start MinIO Event Listener**
+First, ensure your MinIO instance is **running inside the container**.
 
-### **Run This Command in Your Terminal**  
+---
+
+### **Step 2: Configure the Webhook Notification Target**
+Use **cURL** to set up a webhook that notifies your API when a new file is uploaded.
+
 ```sh
-mc alias set myminio http://localhost:9000 minioadmin minioadmin
-mc event add myminio/your-bucket arn:minio:sqs::1:webhook --event put
+. .env
+curl -X POST "http://<MINIO_HOST>:9000/minio/admin/v3/add/webhook" \
+  -H "Content-Type: application/json" \
+  --user "$MINIO_ACCESS_KEY:$MINIO_SECRET_KEY" \
+  -d '{
+    "config": {
+      "endpoint": "http://<YOUR_APP_HOST>:<YOUR_PORT>/etl/webhook",
+      "queueDir": "/tmp/minio-events",
+      "queueLimit": 100000
+    },
+    "comment": "Send events to ETL service"
+  }'
+
 ```
-🔹 **This tells MinIO to send an event to our webhook when a file is uploaded.**  
+
+#### **Replace:**
+- `<MINIO_HOST>` → MinIO container's hostname (e.g., `localhost` or `minio`)
+- `<ACCESS_TOKEN>` → MinIO admin token (if required)
+- `<YOUR_APP_HOST>` → Your Spring Boot app's host (`host.docker.internal` if running outside Docker)
+- `<YOUR_PORT>` → Your Spring Boot app's port (e.g., `8080`)
 
 ---
 
-## **Step 2: Create the Webhook Listener in Spring Boot**  
-We’ll create a REST controller to receive MinIO events and rename files automatically.
+### **Step 3: Set Up Event Triggers for a Bucket**
+Now, tell MinIO to **send events** when files are uploaded to a specific bucket.
 
-### **Install Dependencies (if not installed)**
-In your `pom.xml`, add:
-```xml
-<dependency>
-    <groupId>io.minio</groupId>
-    <artifactId>minio</artifactId>
-    <version>8.5.7</version>
-</dependency>
+```sh
+curl -X PUT "http://<MINIO_HOST>:9000/minio/admin/v3/set/webhook/notifications" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -d '{
+    "bucket": "<YOUR_BUCKET>",
+    "events": ["s3:ObjectCreated:*"],
+    "configId": "etl-webhook",
+    "destination": "http://<YOUR_APP_HOST>:<YOUR_PORT>/etl/webhook"
+  }'
+```
+
+#### **Replace:**
+- `<YOUR_BUCKET>` → Your MinIO bucket name  
+- `"s3:ObjectCreated:*"` → Triggers webhook when a file is uploaded  
+
+---
+
+### **Step 4: Restart MinIO to Apply Changes**
+```sh
+docker restart <minio-container-name>
 ```
 
 ---
 
-### **Webhook Controller: Handle MinIO Events**  
-Create a new class to handle file renaming when an upload event is received.
+### **Step 5: Verify Webhook Events**
+After uploading a file to MinIO:
+```sh
+curl -X PUT --upload-file test.json http://<MINIO_HOST>:9000/<YOUR_BUCKET>/test.json
+```
+You should see a **POST request** hitting your Spring Boot `/etl/webhook` endpoint.
 
+---
+
+### **Now, your ETL pipeline triggers automatically on file uploads! 🚀**
+
+
+Yes, you should **generate the Snowflake ID when handling the MinIO event**, not in the `RawData` constructor.
+
+### **Why?**  
+1. **Ensures MinIO and MySQL stay in sync** → You need the same Snowflake ID in both places.  
+2. **Prevents duplicate IDs** → If `RawData` generates its own ID, it might not match the file name in MinIO.  
+3. **Allows manual uploads** → If someone uploads manually, your app will still rename the file and save the mapping properly.  
+
+---
+
+### **What to Change?**
+#### ✅ **1. Remove ID generation from `RawData`**  
 ```java
-import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.minio.*;
+public class RawData {
+  private Long id;
+  private String rawContent;
 
-@RestController
-@RequestMapping("/minio-events")
-public class MinIOEventListener {
+  public RawData(Long id, String rawContent) {
+    this.id = id;  // Now it accepts an ID instead of generating it
+    this.rawContent = rawContent;
+  }
 
-    private final MinioClient minioClient;
-    private final String bucketName = "your-bucket";
-
-    public MinIOEventListener() {
-        this.minioClient = MinioClient.builder()
-            .endpoint("http://localhost:9000")
-            .credentials("minioadmin", "minioadmin")
-            .build();
-    }
-
-    @PostMapping("/webhook")
-    public void handleMinIOEvent(@RequestBody String eventJson) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(eventJson);
-            
-            String oldFileName = jsonNode.get("Records").get(0).get("s3").get("object").get("key").asText();
-            System.out.println("File uploaded: " + oldFileName);
-
-            if (!isValidSnowflakeID(oldFileName)) {
-                String newFileName = generateSnowflakeID() + ".json";
-                renameFile(oldFileName, newFileName);
-                saveMapping(oldFileName, newFileName);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void renameFile(String oldName, String newName) throws Exception {
-        minioClient.copyObject(
-            CopyObjectArgs.builder()
-                .bucket(bucketName)
-                .object(newName)
-                .source(CopySource.builder()
-                    .bucket(bucketName)
-                    .object(oldName)
-                    .build())
-                .build()
-        );
-
-        minioClient.removeObject(
-            RemoveObjectArgs.builder()
-                .bucket(bucketName)
-                .object(oldName)
-                .build()
-        );
-
-        System.out.println("Renamed: " + oldName + " -> " + newName);
-    }
-
-    private boolean isValidSnowflakeID(String filename) {
-        return filename.matches("\\d{16}\\.json"); // Adjust if needed
-    }
-
-    private String generateSnowflakeID() {
-        return String.valueOf(SnowflakeIDGenerator.nextID());
-    }
-
-    private void saveMapping(String oldName, String newName) {
-        // TODO: Save mapping to a database
-    }
+  public Long getID() { return this.id; }
+  public String getRawContent() { return this.rawContent; }
 }
 ```
-🔹 **How This Works:**  
-1. MinIO uploads a file → triggers an event.  
-2. Your Spring Boot app receives the webhook.  
-3. If the filename is not a Snowflake ID, it's renamed.  
 
 ---
 
-## **Step 3: Register Webhook in MinIO**  
-1. Start your Spring Boot app (`./mvnw spring-boot:run`).  
-2. Get your Spring Boot app’s IP (e.g., `http://localhost:8080`).  
-3. Update MinIO's event webhook:  
-   ```sh
-   mc event add myminio/your-bucket arn:minio:sqs::1:webhook --event put --prefix '' --suffix '' --target http://localhost:8080/minio-events/webhook
-   ```
-4. **Upload a test file to MinIO**  
-   ```sh
-   mc alias set myminio http://localhost:9000 minioadmin minioadmin
-   mc cp test.json myminio/your-bucket/
-   ```
+#### ✅ **2. Generate Snowflake ID in the MinIO event handler**  
+Inside `ETLController`:
+```java
+@PostMapping("/webhook")
+public ResponseEntity<String> handleMinioEvent(@RequestBody String eventData) {
+    System.out.println("Received MinIO event: " + eventData);
+    
+    // Extract file name
+    String rawFileName = extractFileName(eventData);
+    
+    // Generate a Snowflake ID
+    Long snowflakeID = SnowflakeIDGenerator.generateId();
+    String newFileName = snowflakeID + ".json";
+    
+    // Rename file in MinIO
+    renameFileInMinio(rawFileName, newFileName);
+    
+    // Save mapping in MySQL
+    saveFileMapping(rawFileName, newFileName);
+    
+    // Trigger ETL with the correct ID
+    RawData rawData = new RawData(snowflakeID, newFileName);
+    ETLRequestDTO request = new ETLRequestDTO(rawData);
+    etlUseCase.runETL(request);
+    
+    return ResponseEntity.ok("ETL started for: " + newFileName);
+}
+```
 
 ---
 
-### ✅ **Expected Behavior**
-- Your webhook receives the event.  
-- The file is renamed to a **Snowflake ID** format (e.g., `3423423412341234.json`).  
-- The old filename is mapped to the new one (TODO: save it in a database).  
-
----
-
-## **Next Steps**
-- Would you like to store the filename mapping in a **database** (e.g., PostgreSQL, MySQL)?  
-- Would you like the ETL pipeline to trigger **automatically** after renaming?
+Now, **every uploaded file gets a Snowflake ID immediately** and is **correctly mapped in MySQL and MinIO**. 🚀
 
 
-Great! Let's integrate **MySQL** to store the mapping between the old and new filenames, and trigger the **ETL pipeline** automatically after the file is renamed/uploaded.
-
-### **Step 1: Save the File Mapping in MySQL**
+### **Save the File Mapping in MySQL**
 We'll create a new **FileMapping** entity that will store the original file name and the new Snowflake ID name in the MySQL database.
 
 ---
@@ -219,134 +214,3 @@ public interface FileMappingRepository extends JpaRepository<FileMapping, Long> 
     FileMapping findByOriginalName(String originalName);
 }
 ```
-
-#### **1.3 Modify the Controller to Save Mappings**
-
-Update the `MinIOEventListener` controller to save the mapping into the database after renaming the file.
-
-```java
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.minio.*;
-
-@RestController
-@RequestMapping("/minio-events")
-public class MinIOEventListener {
-
-    private final MinioClient minioClient;
-    private final String bucketName = "your-bucket";
-    
-    @Autowired
-    private FileMappingRepository fileMappingRepository;
-
-    public MinIOEventListener() {
-        this.minioClient = MinioClient.builder()
-            .endpoint("http://localhost:9000")
-            .credentials("minioadmin", "minioadmin")
-            .build();
-    }
-
-    @PostMapping("/webhook")
-    public void handleMinIOEvent(@RequestBody String eventJson) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(eventJson);
-            
-            String oldFileName = jsonNode.get("Records").get(0).get("s3").get("object").get("key").asText();
-            System.out.println("File uploaded: " + oldFileName);
-
-            if (!isValidSnowflakeID(oldFileName)) {
-                String newFileName = generateSnowflakeID() + ".json";
-                renameFile(oldFileName, newFileName);
-                saveMapping(oldFileName, newFileName);
-
-                // Trigger ETL pipeline automatically after renaming
-                triggerETLPipeline(newFileName);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void renameFile(String oldName, String newName) throws Exception {
-        minioClient.copyObject(
-            CopyObjectArgs.builder()
-                .bucket(bucketName)
-                .object(newName)
-                .source(CopySource.builder()
-                    .bucket(bucketName)
-                    .object(oldName)
-                    .build())
-                .build()
-        );
-
-        minioClient.removeObject(
-            RemoveObjectArgs.builder()
-                .bucket(bucketName)
-                .object(oldName)
-                .build()
-        );
-
-        System.out.println("Renamed: " + oldName + " -> " + newName);
-    }
-
-    private boolean isValidSnowflakeID(String filename) {
-        return filename.matches("\\d{16}\\.json"); // Adjust if needed
-    }
-
-    private String generateSnowflakeID() {
-        return String.valueOf(SnowflakeIDGenerator.nextID());
-    }
-
-    private void saveMapping(String oldName, String newName) {
-        FileMapping fileMapping = new FileMapping(oldName, newName);
-        fileMappingRepository.save(fileMapping);
-        System.out.println("Saved mapping: " + oldName + " -> " + newName);
-    }
-
-    private void triggerETLPipeline(String newFileName) {
-        // Here we call your ETL service to process the newly renamed file
-        System.out.println("Triggering ETL pipeline for file: " + newFileName);
-        // You can use your existing ETL service, for example:
-        // etlUseCase.runETL(newFileName);
-    }
-}
-```
-
----
-
-### **Step 2: Automatically Trigger the ETL Pipeline**
-
-In the `triggerETLPipeline` method, you can call the ETL pipeline for processing the newly renamed file. We will assume that your ETL service expects a filename (or file ID) to process.
-
-```java
-private void triggerETLPipeline(String newFileName) {
-    // Call your ETL service here
-    // Example:
-    // etlUseCase.runETL(newFileName);
-}
-```
-
-This method can be replaced with the actual implementation of your ETL trigger.
-
----
-
-### **Step 3: Testing**
-
-1. **Upload a file** to MinIO via the **`mc cp`** command or through the MinIO UI.
-2. The webhook will be triggered, the file will be renamed with a Snowflake ID, the mapping will be saved in MySQL, and the ETL pipeline will be triggered automatically.
-
----
-
-### **Step 4: Additional Considerations**
-
-- You might want to handle **retries** in case of failures when interacting with MinIO or MySQL.
-- You could also **log** events more robustly for debugging and auditing purposes.
-- You could add **validation** on whether the file uploaded is valid for ETL processing, such as checking file type, size, etc.
-
----
-
-Let me know if you need help with anything else, such as the actual ETL processing part or additional tests!
