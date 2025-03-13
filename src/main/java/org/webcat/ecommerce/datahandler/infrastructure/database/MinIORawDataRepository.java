@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Repository;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.infrastructure.repository.RawDataRepository;
-
+import org.webcat.ecommerce.datahandler.presentation.controllers.ETLController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.minio.GetObjectArgs;
@@ -28,6 +28,8 @@ public class MinIORawDataRepository
     implements RawDataRepository
 {
 
+  private final ETLController ETLController;
+
   // Loading environment variables.
   Dotenv env = Dotenv.load();
   private final MinioClient lakeClient;
@@ -45,12 +47,20 @@ public class MinIORawDataRepository
     static String generateObjectName(
         Long id)
     {
-      return "raw-data/" + id + ".json";
+      return "raw-data_" + id + ".json";
     }
   }
 
+  public String generateObjectName(
+      Long id)
+  {
+    return ObjectNameGenerator
+        .generateObjectName(id);
+  }
+
   // Constructor.
-  public MinIORawDataRepository()
+  public MinIORawDataRepository(
+      ETLController ETLController)
   {
     // System.out.println("MINIO_HOST: "
     // + env.get("MINIO_HOST"));
@@ -74,6 +84,19 @@ public class MinIORawDataRepository
             env.get("MINIO_ACCESS_KEY"),
             env.get("MINIO_SECRET_KEY"))
         .build();
+    // System.out.println("MINIO_HOST: "
+    // + env.get("MINIO_HOST"));
+    // System.out.println("MINIO_PORT: "
+    // + env.get("MINIO_PORT"));
+    // System.out.println(
+    // "MINIO_ACCESS_KEY: " + env
+    // .get("MINIO_ACCESS_KEY"));
+    // System.out.println(
+    // "MINIO_SECRET_KEY: " + env
+    // .get("MINIO_SECRET_KEY"));
+
+    // Instantiating minio client.
+    this.ETLController = ETLController;
   }
 
   // Getting data by ID.

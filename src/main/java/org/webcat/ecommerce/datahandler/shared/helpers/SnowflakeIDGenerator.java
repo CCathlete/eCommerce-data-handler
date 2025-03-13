@@ -1,5 +1,8 @@
 package org.webcat.ecommerce.datahandler.shared.helpers;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class SnowflakeIDGenerator
 {
 

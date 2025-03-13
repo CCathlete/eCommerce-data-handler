@@ -30,7 +30,7 @@ public class RawData {
 
 ---
 
-#### ✅ **2. Generate Snowflake ID in the MinIO event handler**  
+#### ✅ **2. Call the handleMinioEvent method of etlUseCase**  
 Inside `ETLController`:
 ```java
 package org.webcat.ecommerce.datahandler.presentation.controllers;
@@ -86,29 +86,62 @@ public class ETLController
 
   // Handler for receiving MinIO event notifications.
   @PostMapping("/webhook")
-  public ResponseEntity<String> handleMinioEvent(@RequestBody String eventData)
+  public ResponseEntity<ETLResponseDTO> handleMinioEvent(
+      @RequestBody String eventData)
   {
-    try {
-      // Parse the event data as JSON
-      JsonNode eventJson = objectMapper.readTree(eventData);
+    try
+    {
+      // Parsing the event's data as json.
+      JsonNode eventJson =
+          this.objectMApper
+              .readTree(eventData);
 
-      // Extract relevant details from the event
-      String eventName = eventJson.path("Records").get(0).path("eventName").asText();
-      String fileName = eventJson.path("Records").get(0).path("s3").path("object").path("key").asText();
+      // Checking if the event is valid.
+      if (!eventJson.has("Records")
+          || eventJson.get("Records")
+              .isEmpty())
+      {
+        return ResponseEntity
+            .badRequest().build();
+      }
 
-      // Log the event and extracted file name
-      System.out.printf("Received event: %s, File: %s\n", eventName, fileName);
+      // Extracting relevant details from the json.
+      String eventName = eventJson
+          .path("Records").get(0)
+          .path("eventName").asText();
 
-      // Pass the file name (and event if needed) to your use case or service layer
-      // For example, you can trigger a specific method in your use case to handle the event
-      etlUseCase.handleMinioEvent(eventName, fileName);
+      String fileName = eventJson
+          .path("Records").get(0)
+          .path("s3").path("object")
+          .path("key").asText();
 
-      return ResponseEntity.ok("Event processed");
-    } catch (Exception e) {
-      // Handle any parsing or processing errors
+      // Logging the event and the extracted file name.
+      System.out.printf(
+          "Received event: %s\nFile name: %s\n",
+          eventName, fileName);
+
+      // Calling the ETL use case to process the file.
+      ETLResponseDTO response =
+          this.etlUseCase
+              .handleMinioEvent(
+                  eventName, fileName);
+
+      if (response == null)
+      {
+        return ResponseEntity
+            .badRequest().build();
+      }
+
+      return ResponseEntity
+          .ok(response);
+    } catch (Exception e)
+    {
       e.printStackTrace();
-      return ResponseEntity.status(500).body("Error processing event");
+      // See why I can't return a body.
+      return ResponseEntity.status(500)
+          .build();
     }
+
   }
 }
 ```
@@ -116,6 +149,35 @@ public class ETLController
 ---
 
 Now, **every uploaded file gets a Snowflake ID immediately** and is **correctly mapped in MySQL and MinIO**. 🚀
+
+### **Use case method implementation**
+
+```java
+import org.springframework.stereotype.Service;
+import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
+import org.webcat.ecommerce.datahandler.application.use_cases.interfaces.ETL;
+import org.webcat.ecommerce.datahandler.infrastructure.utils.SnowflakeGenerator;
+
+@Service
+public class ETLMinImp implements ETL {
+
+    private final SnowflakeGenerator snowflakeGenerator;
+
+    public ETLMinImp(SnowflakeGenerator snowflakeGenerator) {
+        this.snowflakeGenerator = snowflakeGenerator;
+    }
+
+    @Override
+    public ETLResponseDTO handleMinioEvent(String eventName, String fileName) {
+        long snowflakeId = snowflakeGenerator.generateId();
+
+        System.out.printf("Processing file: %s, Event: %s, Snowflake ID: %d\n", fileName, eventName, snowflakeId);
+
+        return new ETLResponseDTO("Processing started for " + fileName, snowflakeId);
+    }
+}
+
+```
 
 
 ### **Save the File Mapping in MySQL**
@@ -131,53 +193,42 @@ Create a new entity `FileMapping.java` to store the file name mappings.
 package org.webcat.ecommerce.datahandler.domain.model.entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Setter
+@Getter
+@NoArgsConstructor
 @Entity
 @Table(name = "file_mapping")
-public class FileMapping {
+public class FileMapping
+{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(
+      strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "original_name", nullable = false)
-    private String originalName;
+  @Column(name = "original_name",
+      nullable = false)
+  private String originalName;
 
-    @Column(name = "new_name", nullable = false)
-    private String newName;
+  @Column(name = "new_name",
+      nullable = false)
+  private String newName;
 
-    // Default constructor, getters, and setters
-    public FileMapping() {}
+  // Constructor.
+  public FileMapping(
+      String originalName,
+      String newName)
+  {
+    this.originalName = originalName;
+    this.newName = newName;
+  }
 
-    public FileMapping(String originalName, String newName) {
-        this.originalName = originalName;
-        this.newName = newName;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getOriginalName() {
-        return originalName;
-    }
-
-    public void setOriginalName(String originalName) {
-        this.originalName = originalName;
-    }
-
-    public String getNewName() {
-        return newName;
-    }
-
-    public void setNewName(String newName) {
-        this.newName = newName;
-    }
 }
+
 ```
 
 #### **1.2 Create the Repository Interface**

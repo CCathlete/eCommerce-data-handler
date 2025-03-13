@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.webcat.ecommerce.datahandler.Application;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLRequestDTO;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
-import org.webcat.ecommerce.datahandler.application.use_cases.implementations.ETLMinImp;
 import org.webcat.ecommerce.datahandler.application.use_cases.interfaces.ETL;
-import org.webcat.ecommerce.datahandler.infrastructure.repository.JPAProcessedDataRepo;
+import org.webcat.ecommerce.datahandler.domain.model.valueobjects.ETLStatus;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,19 +22,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ETLController
 {
 
-  private final ETLMinImp ETLMinImp;
 
   private final ETL etlUseCase;
   private final ObjectMapper objectMApper;
 
   public ETLController(ETL etlUseCase,
       ObjectMapper objectMApper,
-      Application application,
-      ETLMinImp ETLMinImp)
+      Application application)
   {
     this.etlUseCase = etlUseCase;
     this.objectMApper = objectMApper;
-    this.ETLMinImp = ETLMinImp;
   }
 
   // Handler for starting the etl process.
@@ -76,6 +73,15 @@ public class ETLController
           this.objectMApper
               .readTree(eventData);
 
+      // Checking if the event is valid.
+      if (!eventJson.has("Records")
+          || eventJson.get("Records")
+              .isEmpty())
+      {
+        return ResponseEntity
+            .badRequest().build();
+      }
+
       // Extracting relevant details from the json.
       String eventName = eventJson
           .path("Records").get(0)
@@ -97,7 +103,9 @@ public class ETLController
               .handleMinioEvent(
                   eventName, fileName);
 
-      if (response == null)
+      if (response == null
+          || response.getStatus()
+              .equals(ETLStatus.FAILED))
       {
         return ResponseEntity
             .badRequest().build();
@@ -105,6 +113,7 @@ public class ETLController
 
       return ResponseEntity
           .ok(response);
+
     } catch (Exception e)
     {
       e.printStackTrace();

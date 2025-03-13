@@ -4,9 +4,11 @@ import org.webcat.ecommerce.datahandler.application.use_cases.interfaces.ETL;
 import org.webcat.ecommerce.datahandler.domain.model.entities.ProcessedData;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.domain.model.valueobjects.ETLStatus;
+import org.webcat.ecommerce.datahandler.domain.service.datavalidation.interfaces.DataValidationService;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.LoadData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.TransformData;
+import org.webcat.ecommerce.datahandler.presentation.controllers.ETLController;
 import org.springframework.stereotype.Component;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLRequestDTO;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
@@ -15,15 +17,20 @@ import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
 public class ETLMinImp implements ETL
 {
 
+  private final ETLController ETLController;
+
   private final ExtractData extractionService;
   private final TransformData transformationService;
   private final LoadData loadingService;
+  private final DataValidationService dataValidationService;
 
   // Constructor.
   public ETLMinImp(
       ExtractData extractionService,
       TransformData transformationService,
-      LoadData loadingService)
+      LoadData loadingService,
+      DataValidationService dataValidationService,
+      ETLController ETLController)
   {
 
     this.extractionService =
@@ -32,6 +39,9 @@ public class ETLMinImp implements ETL
         transformationService;
     this.loadingService =
         loadingService;
+    this.dataValidationService =
+        dataValidationService;
+    this.ETLController = ETLController;
 
   }
 
@@ -81,6 +91,25 @@ public class ETLMinImp implements ETL
   public ETLResponseDTO handleMinioEvent(
       String eventName, String fileName)
   {
-    return null; // TODO: implement
+    Long sfID =
+        this.dataValidationService
+            .normaliseNameID(fileName);
+
+    if (sfID == null)
+    {
+      return new ETLResponseDTO(null,
+          ETLStatus.FAILED);
+    }
+
+
+    System.out.printf(
+        "Processing file %s, event %s, with id %s\n",
+        fileName, eventName, sfID);
+
+    return new ETLResponseDTO(null,
+        ETLStatus.RUNNING)
+            .setSuccess(true);
   }
+
+
 }

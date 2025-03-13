@@ -2,11 +2,13 @@ package org.webcat.ecommerce.datahandler.domain.model.valueobjects;
 
 public enum ETLStatus
 {
-  EXTRACTED("Extracted"), TRANSFORMED(
-      "Transformed"), LOADED(
-          "Loaded"), FAILED(
-              "Failed"), CANCELLED(
-                  "Cancelled");
+  PENDING("Pending"), RUNNING(
+      "Running"), EXTRACTED(
+          "Extracted"), TRANSFORMED(
+              "Transformed"), LOADED(
+                  "Loaded"), FAILED(
+                      "Failed"), CANCELLED(
+                          "Cancelled");
 
   private final String status;
 
