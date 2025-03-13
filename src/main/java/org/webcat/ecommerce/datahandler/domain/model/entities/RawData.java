@@ -19,14 +19,11 @@ public class RawData
 {
   private Long id;
   private String rawContent;
-  private static final SnowflakeIDGenerator idGenerator =
-      new SnowflakeIDGenerator(1, 1);
 
-  public RawData(String rawContent)
+  public RawData(Long id,
+      String rawContent)
   {
-    // Generates a unique id at time of creation.
-    this.id = RawData.idGenerator
-        .generateId();
+    this.id = id;
     this.rawContent = rawContent;
   }
 

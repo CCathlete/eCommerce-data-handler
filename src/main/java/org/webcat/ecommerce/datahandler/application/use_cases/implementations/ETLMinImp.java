@@ -76,4 +76,11 @@ public class ETLMinImp implements ETL
   {
     return null; // TODO: implement
   }
+
+  @Override
+  public ETLResponseDTO handleMinioEvent(
+      String eventName, String fileName)
+  {
+    return null; // TODO: implement
+  }
 }

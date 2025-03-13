@@ -2,18 +2,6 @@
 Minio would register the webhook only if the spring app is online because Minio checks the endpoint it sends the events to.
 
 
-### **Step 5: Verify Webhook Events**
-After uploading a file to MinIO:
-```sh
-curl -X PUT --upload-file test.json http://<MINIO_HOST>:9000/<YOUR_BUCKET>/test.json
-```
-You should see a **POST request** hitting your Spring Boot `/etl/webhook` endpoint.
-
----
-
-### **Now, your ETL pipeline triggers automatically on file uploads! 🚀**
-
-
 Yes, you should **generate the Snowflake ID when handling the MinIO event**, not in the `RawData` constructor.
 
 ### **Why?**  
@@ -45,29 +33,83 @@ public class RawData {
 #### ✅ **2. Generate Snowflake ID in the MinIO event handler**  
 Inside `ETLController`:
 ```java
-@PostMapping("/webhook")
-public ResponseEntity<String> handleMinioEvent(@RequestBody String eventData) {
-    System.out.println("Received MinIO event: " + eventData);
-    
-    // Extract file name
-    String rawFileName = extractFileName(eventData);
-    
-    // Generate a Snowflake ID
-    Long snowflakeID = SnowflakeIDGenerator.generateId();
-    String newFileName = snowflakeID + ".json";
-    
-    // Rename file in MinIO
-    renameFileInMinio(rawFileName, newFileName);
-    
-    // Save mapping in MySQL
-    saveFileMapping(rawFileName, newFileName);
-    
-    // Trigger ETL with the correct ID
-    RawData rawData = new RawData(snowflakeID, newFileName);
-    ETLRequestDTO request = new ETLRequestDTO(rawData);
-    etlUseCase.runETL(request);
-    
-    return ResponseEntity.ok("ETL started for: " + newFileName);
+package org.webcat.ecommerce.datahandler.presentation.controllers;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.webcat.ecommerce.datahandler.application.dtos.ETLRequestDTO;
+import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
+import org.webcat.ecommerce.datahandler.application.use_cases.interfaces.ETL;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@RestController
+@RequestMapping("/etl")
+public class ETLController
+{
+  private final ETL etlUseCase;
+  private final ObjectMapper objectMapper; // For parsing JSON
+
+  public ETLController(ETL etlUseCase, ObjectMapper objectMapper)
+  {
+    this.etlUseCase = etlUseCase;
+    this.objectMapper = objectMapper;
+  }
+
+  // Handler for starting the ETL process.
+  @PostMapping("/run")
+  public ResponseEntity<ETLResponseDTO> sendToETL(
+      @RequestBody ETLRequestDTO request)
+  {
+    ETLResponseDTO response = this.etlUseCase.runETL(request);
+
+    if (response == null)
+    {
+      return ResponseEntity.badRequest().build();
+    }
+
+    return ResponseEntity.ok(response);
+  }
+
+  // Handler for checking the status of the ETL process.
+  @GetMapping("/status/{processID}")
+  public ResponseEntity<ETLResponseDTO> checkETLStatus(
+      @RequestParam String processID)
+  {
+    return ResponseEntity.ok(etlUseCase.checkETLStatus(processID));
+  }
+
+  // Handler for receiving MinIO event notifications.
+  @PostMapping("/webhook")
+  public ResponseEntity<String> handleMinioEvent(@RequestBody String eventData)
+  {
+    try {
+      // Parse the event data as JSON
+      JsonNode eventJson = objectMapper.readTree(eventData);
+
+      // Extract relevant details from the event
+      String eventName = eventJson.path("Records").get(0).path("eventName").asText();
+      String fileName = eventJson.path("Records").get(0).path("s3").path("object").path("key").asText();
+
+      // Log the event and extracted file name
+      System.out.printf("Received event: %s, File: %s\n", eventName, fileName);
+
+      // Pass the file name (and event if needed) to your use case or service layer
+      // For example, you can trigger a specific method in your use case to handle the event
+      etlUseCase.handleMinioEvent(eventName, fileName);
+
+      return ResponseEntity.ok("Event processed");
+    } catch (Exception e) {
+      // Handle any parsing or processing errors
+      e.printStackTrace();
+      return ResponseEntity.status(500).body("Error processing event");
+    }
+  }
 }
 ```
 
