@@ -1,6 +1,7 @@
 package org.webcat.ecommerce.datahandler.domain.service.datavalidation.implementations;
 
 import org.springframework.stereotype.Service;
+import org.webcat.ecommerce.datahandler.application.use_cases.implementations.ETLMinImp;
 import org.webcat.ecommerce.datahandler.domain.model.entities.FileMapping;
 import org.webcat.ecommerce.datahandler.domain.service.datavalidation.interfaces.DataValidationService;
 import org.webcat.ecommerce.datahandler.infrastructure.database.MinIORawDataRepository;
@@ -13,6 +14,8 @@ public class DataValidationServiceImpl
     implements DataValidationService
 {
 
+  private final ETLMinImp ETLMinImp;
+
   private final ETLController ETLController;
 
   private final SnowflakeIDGenerator snowflakeIDGenerator;
@@ -23,7 +26,8 @@ public class DataValidationServiceImpl
       SnowflakeIDGenerator snowflakeIDGenerator,
       JPAFileMappingRepo fileMappingRepo,
       MinIORawDataRepository minioRepo,
-      ETLController ETLController)
+      ETLController ETLController,
+      ETLMinImp ETLMinImp)
   {
     this.snowflakeIDGenerator =
         snowflakeIDGenerator;
@@ -31,6 +35,7 @@ public class DataValidationServiceImpl
         fileMappingRepo;
     this.minioRepo = minioRepo;
     this.ETLController = ETLController;
+    this.ETLMinImp = ETLMinImp;
   }
 
   @Override
@@ -65,7 +70,11 @@ public class DataValidationServiceImpl
     }
 
     // Updating the file name in minio.
-    // TODO: implement.
+    if (!this.minioRepo.renameObject(
+        fileName, newName))
+    {
+      return null;
+    }
 
     return sfID;
   }

@@ -5,14 +5,18 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.stereotype.Repository;
+import org.webcat.ecommerce.datahandler.application.use_cases.implementations.ETLMinImp;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.infrastructure.repository.RawDataRepository;
 import org.webcat.ecommerce.datahandler.presentation.controllers.ETLController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.github.cdimascio.dotenv.Dotenv;
 
 
@@ -27,6 +31,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class MinIORawDataRepository
     implements RawDataRepository
 {
+
+  private final ETLMinImp ETLMinImp;
 
   private final ETLController ETLController;
 
@@ -60,7 +66,8 @@ public class MinIORawDataRepository
 
   // Constructor.
   public MinIORawDataRepository(
-      ETLController ETLController)
+      ETLController ETLController,
+      ETLMinImp ETLMinImp)
   {
     // System.out.println("MINIO_HOST: "
     // + env.get("MINIO_HOST"));
@@ -97,6 +104,19 @@ public class MinIORawDataRepository
 
     // Instantiating minio client.
     this.ETLController = ETLController;
+    // System.out.println("MINIO_HOST: "
+    // + env.get("MINIO_HOST"));
+    // System.out.println("MINIO_PORT: "
+    // + env.get("MINIO_PORT"));
+    // System.out.println(
+    // "MINIO_ACCESS_KEY: " + env
+    // .get("MINIO_ACCESS_KEY"));
+    // System.out.println(
+    // "MINIO_SECRET_KEY: " + env
+    // .get("MINIO_SECRET_KEY"));
+
+    // Instantiating minio client.
+    this.ETLMinImp = ETLMinImp;
   }
 
   // Getting data by ID.
@@ -164,4 +184,36 @@ public class MinIORawDataRepository
           "Failed to save raw data", e);
     }
   }
+
+  public Boolean renameObject(
+      String oldName, String newName)
+  {
+    try
+    {
+      // Copying the object to one with a new name.
+      this.lakeClient.copyObject(
+          CopyObjectArgs.builder()
+              .source(CopySource
+                  .builder()
+                  .bucket(
+                      this.bucketName)
+                  .object(oldName)
+                  .build())
+              .bucket(bucketName)
+              .object(newName).build());
+
+      // Deleting the old object.
+      this.lakeClient.removeObject(
+          RemoveObjectArgs.builder()
+              .bucket(bucketName)
+              .object(oldName).build());
+
+      return true;
+    } catch (Exception e)
+    {
+      e.printStackTrace();
+      return false;
+    }
+  }
+
 }

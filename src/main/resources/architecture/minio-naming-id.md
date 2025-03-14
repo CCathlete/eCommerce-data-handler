@@ -245,3 +245,43 @@ public interface FileMappingRepository extends JpaRepository<FileMapping, Long> 
     FileMapping findByOriginalName(String originalName);
 }
 ```
+
+<h1> Renaming a file in MinIO</h1>
+
+1. Copy the file to a new name.  
+2. Delete the original file.  
+
+If `MinIORawDataRepository` is your MinIO integration, add a method like this:  
+
+```java
+public boolean renameObject(String oldName, String newName) {
+    try {
+        // Copy the object to a new name
+        minioClient.copyObject(
+            CopyObjectArgs.builder()
+                .source(CopySource.builder()
+                    .bucket(bucketName)
+                    .object(oldName)
+                    .build())
+                .bucket(bucketName)
+                .object(newName)
+                .build()
+        );
+
+        // Delete the old object
+        minioClient.removeObject(
+            RemoveObjectArgs.builder()
+                .bucket(bucketName)
+                .object(oldName)
+                .build()
+        );
+
+        return true;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+```
+
+Then, call `renameObject(fileName, newName)` in your `normaliseNameID` method. Let me know if you need adjustments!
