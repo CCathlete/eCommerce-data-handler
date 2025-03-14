@@ -23,6 +23,9 @@ migratedown_1: # Down one migration back.
 mc:
 	sudo docker-compose exec minio mc $(args)
 
+compose:
+	sudo docker-compose $(args)
+
 # Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
-.PHONY: connect mc migrateup migratedown migratedown_1 migrateup_1 #dbfile
+.PHONY: connect compose mc migrateup migratedown migratedown_1 migrateup_1 #dbfile
 
