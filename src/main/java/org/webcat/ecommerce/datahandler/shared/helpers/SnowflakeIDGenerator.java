@@ -1,5 +1,6 @@
 package org.webcat.ecommerce.datahandler.shared.helpers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -53,8 +54,8 @@ public class SnowflakeIDGenerator
   private Long previousTimestamp = -1L;
 
   public SnowflakeIDGenerator(
-      Integer datacenterId,
-      Integer machineId)
+      @Value("${snowflake.datacenter-id}") Integer datacenterId,
+      @Value("${snowflake.machine-id}") Integer machineId)
   {
     if (machineId > this.maxMachineId
         || machineId < 0)

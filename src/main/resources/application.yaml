@@ -9,3 +9,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+snowflake:
+  datacenter-id: 1
+  machine-id: 1
+

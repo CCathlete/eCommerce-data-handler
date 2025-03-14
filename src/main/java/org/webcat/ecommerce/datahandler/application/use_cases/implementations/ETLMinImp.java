@@ -17,8 +17,6 @@ import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
 public class ETLMinImp implements ETL
 {
 
-  private final ETLController ETLController;
-
   private final ExtractData extractionService;
   private final TransformData transformationService;
   private final LoadData loadingService;
@@ -29,8 +27,7 @@ public class ETLMinImp implements ETL
       ExtractData extractionService,
       TransformData transformationService,
       LoadData loadingService,
-      DataValidationService dataValidationService,
-      ETLController ETLController)
+      DataValidationService dataValidationService)
   {
 
     this.extractionService =
@@ -41,7 +38,6 @@ public class ETLMinImp implements ETL
         loadingService;
     this.dataValidationService =
         dataValidationService;
-    this.ETLController = ETLController;
 
   }
 

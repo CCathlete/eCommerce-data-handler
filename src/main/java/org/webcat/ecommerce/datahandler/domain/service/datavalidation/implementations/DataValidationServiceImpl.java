@@ -1,22 +1,16 @@
 package org.webcat.ecommerce.datahandler.domain.service.datavalidation.implementations;
 
 import org.springframework.stereotype.Service;
-import org.webcat.ecommerce.datahandler.application.use_cases.implementations.ETLMinImp;
 import org.webcat.ecommerce.datahandler.domain.model.entities.FileMapping;
 import org.webcat.ecommerce.datahandler.domain.service.datavalidation.interfaces.DataValidationService;
 import org.webcat.ecommerce.datahandler.infrastructure.database.MinIORawDataRepository;
 import org.webcat.ecommerce.datahandler.infrastructure.repository.JPAFileMappingRepo;
-import org.webcat.ecommerce.datahandler.presentation.controllers.ETLController;
 import org.webcat.ecommerce.datahandler.shared.helpers.SnowflakeIDGenerator;
 
 @Service
 public class DataValidationServiceImpl
     implements DataValidationService
 {
-
-  private final ETLMinImp ETLMinImp;
-
-  private final ETLController ETLController;
 
   private final SnowflakeIDGenerator snowflakeIDGenerator;
   private final JPAFileMappingRepo fileMappingRepo;
@@ -25,17 +19,13 @@ public class DataValidationServiceImpl
   public DataValidationServiceImpl(
       SnowflakeIDGenerator snowflakeIDGenerator,
       JPAFileMappingRepo fileMappingRepo,
-      MinIORawDataRepository minioRepo,
-      ETLController ETLController,
-      ETLMinImp ETLMinImp)
+      MinIORawDataRepository minioRepo)
   {
     this.snowflakeIDGenerator =
         snowflakeIDGenerator;
     this.fileMappingRepo =
         fileMappingRepo;
     this.minioRepo = minioRepo;
-    this.ETLController = ETLController;
-    this.ETLMinImp = ETLMinImp;
   }
 
   @Override

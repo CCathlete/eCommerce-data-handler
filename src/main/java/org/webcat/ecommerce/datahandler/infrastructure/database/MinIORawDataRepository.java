@@ -99,8 +99,9 @@ public class MinIORawDataRepository
     // Instantiating minio client.
     System.out.println("MINIO_HOST: "
         + env.get("MINIO_HOST"));
-    System.out.println("MINIO_PORT: "
-        + env.get("MINIO_PORT"));
+    System.out.println(
+        "MINIO_API_PORT: " + env
+            .get("MINIO_API_PORT"));
     System.out.println(
         "MINIO_ACCESS_KEY: " + env
             .get("MINIO_ACCESS_KEY"));
