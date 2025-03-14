@@ -32,10 +32,6 @@ public class MinIORawDataRepository
     implements RawDataRepository
 {
 
-  private final ETLMinImp ETLMinImp;
-
-  private final ETLController ETLController;
-
   // Loading environment variables.
   Dotenv env = Dotenv.load();
   private final MinioClient lakeClient;
@@ -65,9 +61,7 @@ public class MinIORawDataRepository
   }
 
   // Constructor.
-  public MinIORawDataRepository(
-      ETLController ETLController,
-      ETLMinImp ETLMinImp)
+  public MinIORawDataRepository()
   {
     // System.out.println("MINIO_HOST: "
     // + env.get("MINIO_HOST"));
@@ -103,20 +97,17 @@ public class MinIORawDataRepository
     // .get("MINIO_SECRET_KEY"));
 
     // Instantiating minio client.
-    this.ETLController = ETLController;
-    // System.out.println("MINIO_HOST: "
-    // + env.get("MINIO_HOST"));
-    // System.out.println("MINIO_PORT: "
-    // + env.get("MINIO_PORT"));
-    // System.out.println(
-    // "MINIO_ACCESS_KEY: " + env
-    // .get("MINIO_ACCESS_KEY"));
-    // System.out.println(
-    // "MINIO_SECRET_KEY: " + env
-    // .get("MINIO_SECRET_KEY"));
+    System.out.println("MINIO_HOST: "
+        + env.get("MINIO_HOST"));
+    System.out.println("MINIO_PORT: "
+        + env.get("MINIO_PORT"));
+    System.out.println(
+        "MINIO_ACCESS_KEY: " + env
+            .get("MINIO_ACCESS_KEY"));
+    System.out.println(
+        "MINIO_SECRET_KEY: " + env
+            .get("MINIO_SECRET_KEY"));
 
-    // Instantiating minio client.
-    this.ETLMinImp = ETLMinImp;
   }
 
   // Getting data by ID.
