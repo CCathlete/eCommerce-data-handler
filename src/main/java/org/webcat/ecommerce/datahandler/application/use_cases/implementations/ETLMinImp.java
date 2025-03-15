@@ -86,9 +86,9 @@ public class ETLMinImp implements ETL
   public ETLResponseDTO handleMinioEvent(
       String eventName, String fileName)
   {
-    // Only process "create" events, ignore "delete" events
+    // Only process "create:Put" (upload) events, ignore "delete" events
     if (eventName.startsWith(
-        "s3:ObjectCreated:"))
+        "s3:ObjectCreated:Put"))
     {
       Long sfID =
           this.dataValidationService
