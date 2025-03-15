@@ -86,23 +86,37 @@ public class ETLMinImp implements ETL
   public ETLResponseDTO handleMinioEvent(
       String eventName, String fileName)
   {
-    Long sfID =
-        this.dataValidationService
-            .normaliseNameID(fileName);
-
-    if (sfID == null)
+    // Only process "create" events, ignore "delete" events
+    if (eventName.startsWith(
+        "s3:ObjectCreated:"))
     {
+      Long sfID =
+          this.dataValidationService
+              .normaliseNameID(
+                  fileName);
+
+      if (sfID == null)
+      {
+        return new ETLResponseDTO(null,
+            ETLStatus.FAILED);
+      }
+
+
+      System.out.printf(
+          "Processing file %s, event %s, with id %s\n",
+          fileName, eventName, sfID);
+
+      // In the case of an upload, if the renaming was successful,
+      // we return a normalised status..
       return new ETLResponseDTO(null,
-          ETLStatus.FAILED);
+          ETLStatus.DATANORMALISED)
+              .setSuccess(true);
     }
 
-
-    System.out.printf(
-        "Processing file %s, event %s, with id %s\n",
-        fileName, eventName, sfID);
-
+    // In the case of a delete, we do nothing and return a ready
+    // status.
     return new ETLResponseDTO(null,
-        ETLStatus.RUNNING)
+        ETLStatus.READY)
             .setSuccess(true);
   }
 
