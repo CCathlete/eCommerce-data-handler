@@ -17,6 +17,7 @@ public interface JPAFileMappingRepo
 
   // Hibernate can return void, int, long from a deleteby... method.
   // The return value is the number of rows deleted.
+  // We need to annotate as transactional since JPA methods are read only by default.
   @Transactional
   Integer deleteByNewName(
       String newName);
