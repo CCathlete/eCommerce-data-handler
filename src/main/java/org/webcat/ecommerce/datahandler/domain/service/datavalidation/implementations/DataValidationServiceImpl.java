@@ -74,7 +74,7 @@ public class DataValidationServiceImpl
       String newName)
   {
     return this.fileMappingRepo
-        .deleteByNewName(newName);
+        .deleteByNewName(newName) > 0;
   }
 
 }
