@@ -102,9 +102,11 @@ public class ETLMinImp implements ETL
       }
 
 
+      System.out.print("\n");
       System.out.printf(
           "Processing file %s, event %s, with id %s\n",
           fileName, eventName, sfID);
+      System.out.print("\n");
 
       // In the case of an upload, if the renaming was successful,
       // we return a normalised status..

@@ -98,7 +98,6 @@ public class ETLController
       System.out.printf(
           "Received event: %s\nFile name: %s\n",
           eventName, fileName);
-      System.out.print("\n\n");
 
       // Calling the ETL use case to process the file.
       ETLResponseDTO response =
