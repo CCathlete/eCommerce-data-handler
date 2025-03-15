@@ -2,15 +2,16 @@ package org.webcat.ecommerce.datahandler.domain.model.valueobjects;
 
 public enum ETLStatus
 {
-  READY("Ready"), PENDING(
-      "Pending"), RUNNING(
-          "Running"), EXTRACTED(
-              "Extracted"), TRANSFORMED(
-                  "Transformed"), LOADED(
-                      "Loaded"), FAILED(
-                          "Failed"), CANCELLED(
-                              "Cancelled"), DATANORMALISED(
-                                  "Data Normalised");
+  READY("Ready"), READYWITHWARNING(
+      "Ready with Warning"), PENDING(
+          "Pending"), RUNNING(
+              "Running"), EXTRACTED(
+                  "Extracted"), TRANSFORMED(
+                      "Transformed"), LOADED(
+                          "Loaded"), FAILED(
+                              "Failed"), CANCELLED(
+                                  "Cancelled"), DATANORMALISED(
+                                      "Data Normalised");
 
   private final String status;
 

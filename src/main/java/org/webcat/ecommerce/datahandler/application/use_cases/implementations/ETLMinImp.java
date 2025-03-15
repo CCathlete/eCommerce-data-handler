@@ -115,6 +115,18 @@ public class ETLMinImp implements ETL
               .setSuccess(true);
     }
 
+    // In case of a delete event we delete the name mapping.
+    if (eventName.startsWith(
+        "s3:ObjectRemoved:Delete"))
+    {
+      if (!this.dataValidationService
+          .deleteNameMapping(fileName))
+      {
+        return new ETLResponseDTO(null,
+            ETLStatus.READYWITHWARNING);
+      }
+    }
+
     // In the case of a delete, we do nothing and return a ready
     // status.
     return new ETLResponseDTO(null,

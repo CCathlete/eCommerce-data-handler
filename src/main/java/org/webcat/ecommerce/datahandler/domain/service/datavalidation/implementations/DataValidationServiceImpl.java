@@ -68,4 +68,13 @@ public class DataValidationServiceImpl
 
     return sfID;
   }
+
+  @Override
+  public Boolean deleteNameMapping(
+      String newName)
+  {
+    return this.fileMappingRepo
+        .deleteByNewName(newName);
+  }
+
 }

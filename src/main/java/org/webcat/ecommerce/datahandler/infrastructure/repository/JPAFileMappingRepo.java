@@ -10,4 +10,10 @@ public interface JPAFileMappingRepo
   // Hibernate will generate this in addition to the default CRUD.
   FileMapping findByOriginalName(
       String originalName);
+
+  FileMapping findByNewName(
+      String newName);
+
+  Boolean deleteByNewName(
+      String newName);
 }
