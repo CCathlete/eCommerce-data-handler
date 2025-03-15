@@ -4,11 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-import org.webcat.ecommerce.datahandler.application.use_cases.implementations.ETLMinImp;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.infrastructure.repository.RawDataRepository;
-import org.webcat.ecommerce.datahandler.presentation.controllers.ETLController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.minio.CopyObjectArgs;
@@ -36,7 +35,7 @@ public class MinIORawDataRepository
   Dotenv env = Dotenv.load();
   private final MinioClient lakeClient;
   private final String bucketName =
-      "raw-data";
+      env.get("CURRENT_BUCKET");
   // Jackson object mapper.
   private final ObjectMapper objectMapper =
       new ObjectMapper();
@@ -44,7 +43,6 @@ public class MinIORawDataRepository
   // Generating object names from ids.
   private static class ObjectNameGenerator
   {
-    // TODO check.
     // The class is private so its methods are also private.
     static String generateObjectName(
         Long id)
@@ -63,18 +61,9 @@ public class MinIORawDataRepository
   // Constructor.
   public MinIORawDataRepository()
   {
-    // System.out.println("MINIO_HOST: "
-    // + env.get("MINIO_HOST"));
-    // System.out.println("MINIO_PORT: "
-    // + env.get("MINIO_PORT"));
-    // System.out.println(
-    // "MINIO_ACCESS_KEY: " + env
-    // .get("MINIO_ACCESS_KEY"));
-    // System.out.println(
-    // "MINIO_SECRET_KEY: " + env
-    // .get("MINIO_SECRET_KEY"));
 
     // Instantiating minio client.
+
     this.lakeClient = MinioClient
         .builder()
         .endpoint("http://"
@@ -85,29 +74,19 @@ public class MinIORawDataRepository
             env.get("MINIO_ACCESS_KEY"),
             env.get("MINIO_SECRET_KEY"))
         .build();
+
+    //
     // System.out.println("MINIO_HOST: "
     // + env.get("MINIO_HOST"));
-    // System.out.println("MINIO_PORT: "
-    // + env.get("MINIO_PORT"));
+    // System.out.println(
+    // "MINIO_API_PORT: " + env
+    // .get("MINIO_API_PORT"));
     // System.out.println(
     // "MINIO_ACCESS_KEY: " + env
     // .get("MINIO_ACCESS_KEY"));
     // System.out.println(
     // "MINIO_SECRET_KEY: " + env
     // .get("MINIO_SECRET_KEY"));
-
-    // Instantiating minio client.
-    System.out.println("MINIO_HOST: "
-        + env.get("MINIO_HOST"));
-    System.out.println(
-        "MINIO_API_PORT: " + env
-            .get("MINIO_API_PORT"));
-    System.out.println(
-        "MINIO_ACCESS_KEY: " + env
-            .get("MINIO_ACCESS_KEY"));
-    System.out.println(
-        "MINIO_SECRET_KEY: " + env
-            .get("MINIO_SECRET_KEY"));
 
   }
 
@@ -123,7 +102,8 @@ public class MinIORawDataRepository
       InputStream inputStream =
           this.lakeClient.getObject(
               GetObjectArgs.builder()
-                  .bucket(bucketName)
+                  .bucket(
+                      this.bucketName)
                   .object(objectName)
                   .build());
 

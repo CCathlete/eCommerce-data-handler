@@ -8,7 +8,6 @@ import org.webcat.ecommerce.datahandler.domain.service.datavalidation.interfaces
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.LoadData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.TransformData;
-import org.webcat.ecommerce.datahandler.presentation.controllers.ETLController;
 import org.springframework.stereotype.Component;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLRequestDTO;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
