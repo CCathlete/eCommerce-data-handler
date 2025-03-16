@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.infrastructure.repository.RawDataRepository;
@@ -32,7 +31,8 @@ public class MinIORawDataRepository
 {
 
   // Loading environment variables.
-  Dotenv env = Dotenv.load();
+  private static final Dotenv env =
+      Dotenv.load();
   private final MinioClient lakeClient;
   private final String bucketName =
       env.get("CURRENT_BUCKET");
@@ -112,11 +112,13 @@ public class MinIORawDataRepository
           inputStream, RawData.class);
     } catch (Exception e)
     {
-      throw new RuntimeException(
+      // throw new RuntimeException(
+      System.out.printf(
           "Failed to fetch raw data with name: "
               + fileName,
           e);
     }
+    return null;
   }
 
   // Getting data by ID.
