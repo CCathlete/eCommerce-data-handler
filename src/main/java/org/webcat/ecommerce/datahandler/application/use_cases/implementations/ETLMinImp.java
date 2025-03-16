@@ -61,6 +61,8 @@ public class ETLMinImp implements ETL
     }
 
     // Transforming and loading (to the processed data repo).
+    Long[] processedFilesIDs =
+        new Long[contentOfFiles.size()];
     Integer index = 0;
     Integer failCounter = 0;
     for (RawData rawData : contentOfFiles)
@@ -89,6 +91,9 @@ public class ETLMinImp implements ETL
         failCounter++;
         continue;
       }
+      // If there were no errors, add the id to the array and increment the index.
+      processedFilesIDs[index] =
+          processedData.getId();
       index++;
     }
 
@@ -99,9 +104,10 @@ public class ETLMinImp implements ETL
     }
 
     return new ETLResponseDTO(
-        processedData.getId(),
+        processedFilesIDs,
         ETLStatus.LOADED)
-            .setSuccess(success);
+            // success = true.
+            .setSuccess(true);
   }
 
   @Override

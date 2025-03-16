@@ -17,7 +17,7 @@ import org.webcat.ecommerce.datahandler.domain.model.valueobjects.ETLStatus;
  */
 public class ETLResponseDTO
 {
-  private Long processedDataId;
+  private Long[] processedFilesIDs;
   private ETLStatus status;
   private Boolean success;
 
@@ -26,29 +26,29 @@ public class ETLResponseDTO
 
   /**
    * 
-   * @param processedDataId
+   * @param processedFilesIDs
    * @param status
    */
   public ETLResponseDTO(
-      Long processedDataId,
+      Long[] processedFilesIDs,
       ETLStatus status)
   {
-    this.processedDataId =
-        processedDataId;
+    this.processedFilesIDs =
+        processedFilesIDs;
     this.status = status;
     this.success = false;
   }
 
-  public Long getProcessedDataId()
+  public Long[] getProcessedFilesIDs()
   {
-    return this.processedDataId;
+    return this.processedFilesIDs;
   }
 
-  public void setProcessedDataId(
-      Long processedDataId)
+  public void setProcessedFilesIDs(
+      Long[] processedFilesIDs)
   {
-    this.processedDataId =
-        processedDataId;
+    this.processedFilesIDs =
+        processedFilesIDs;
   }
 
   public ETLStatus getStatus()
