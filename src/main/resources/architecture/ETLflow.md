@@ -110,5 +110,38 @@ public class Application {
    ```
    Saving processed data: SAMPLE DATA FROM SOURCE
    ```
----
 This should give you a working **ETL pipeline POC**. What's next?
+
+---
+<h1>Modifying the ETL controller and service to handle filenames</h1>
+
+Yes, using **filenames** instead of IDs in the request body makes more sense, since your ETL process is working with files. It also avoids an extra database lookup to translate IDs into filenames.  
+
+Here’s what you can do:  
+
+### **Change Request Body to Filenames**  
+- Instead of sending `{ "ids": [123, 456] }`, send `{ "filenames": ["file1.json", "file2.csv"] }`.  
+- Modify your service to fetch and process files directly by filename.  
+
+### **Updated API Structure**  
+```java
+@PostMapping("/etl")
+public ResponseEntity<String> triggerEtl(@RequestBody List<String> filenames) {
+    etlService.processFiles(filenames);
+    return ResponseEntity.ok("ETL triggered for files: " + filenames);
+}
+```
+
+### **Service Update**
+Modify your ETL service to fetch file data based on filenames:
+```java
+public void processFiles(List<String> filenames) {
+    for (String filename : filenames) {
+        FileMapping fileMapping = fileMappingRepo.findByNewName(filename);
+        if (fileMapping != null) {
+            runEtl(fileMapping.getNewName());
+        }
+    }
+}
+```
+This way, you don't need to pass IDs, and your system will work directly with filenames.

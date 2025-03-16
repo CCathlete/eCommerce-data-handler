@@ -8,6 +8,10 @@ import org.webcat.ecommerce.datahandler.domain.service.datavalidation.interfaces
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.LoadData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.TransformData;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLRequestDTO;
 import org.webcat.ecommerce.datahandler.application.dtos.ETLResponseDTO;
@@ -45,26 +49,51 @@ public class ETLMinImp implements ETL
       ETLRequestDTO request)
   {
 
-    RawData rawData =
-        this.extractionService.extract(
-            request.getRawDataId());
-    if (rawData == null)
+    List<String> fileNames =
+        request.getFileNames();
+    ArrayList<RawData> contentOfFiles =
+        this.extractionService
+            .extract(fileNames);
+
+    if (contentOfFiles.size() == 0)
     {
       return null;
     }
 
-    ProcessedData processedData =
-        this.transformationService
-            .transform(rawData);
-    if (processedData == null)
+    // Transforming and loading (to the processed data repo).
+    Integer index = 0;
+    Integer failCounter = 0;
+    for (RawData rawData : contentOfFiles)
     {
-      return null;
+      ProcessedData processedData =
+          this.transformationService
+              .transform(rawData);
+      if (processedData == null)
+      {
+        System.out.printf(
+            "Failed to transform file: %s\n",
+            fileNames.get(index));
+        index++;
+        failCounter++;
+        continue;
+      }
+      Boolean success =
+          this.loadingService
+              .save(processedData);
+      if (!success)
+      {
+        System.out.printf(
+            "Failed to load (save) file: %s\n",
+            fileNames.get(index));
+        index++;
+        failCounter++;
+        continue;
+      }
+      index++;
     }
 
-    Boolean success =
-        this.loadingService
-            .save(processedData);
-    if (!success)
+    if (failCounter == contentOfFiles
+        .size())
     {
       return null;
     }

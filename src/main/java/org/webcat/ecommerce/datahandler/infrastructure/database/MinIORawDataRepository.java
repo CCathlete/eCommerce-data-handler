@@ -90,6 +90,35 @@ public class MinIORawDataRepository
 
   }
 
+  // Getting data by file name.
+  @Override
+  public RawData findByFileName(
+      String fileName)
+  {
+    try
+    {
+      String objectName =
+          fileName.split(".")[0];
+      InputStream inputStream =
+          this.lakeClient.getObject(
+              GetObjectArgs.builder()
+                  .bucket(
+                      this.bucketName)
+                  .object(objectName)
+                  .build());
+
+      // Reads data form input stream into RawData object.
+      return objectMapper.readValue(
+          inputStream, RawData.class);
+    } catch (Exception e)
+    {
+      throw new RuntimeException(
+          "Failed to fetch raw data with name: "
+              + fileName,
+          e);
+    }
+  }
+
   // Getting data by ID.
   @Override
   public RawData findById(Long id)

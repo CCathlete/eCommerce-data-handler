@@ -1,20 +1,30 @@
 package org.webcat.ecommerce.datahandler.application.dtos;
 
-public class ETLRequestDTO {
-  private Long rawDataId;
+import java.util.List;
 
-  public ETLRequestDTO() {
+public class ETLRequestDTO
+{
+  // Currently I assume they're all from the same bucket.
+  private List<String> fileNames;
+
+
+  public ETLRequestDTO()
+  {}
+
+  public ETLRequestDTO(
+      List<String> fileNames)
+  {
+    this.fileNames = fileNames;
   }
 
-  public ETLRequestDTO(Long rawDataId) {
-    this.rawDataId = rawDataId;
+  public List<String> getFileNames()
+  {
+    return this.fileNames;
   }
 
-  public Long getRawDataId() {
-    return this.rawDataId;
-  }
-
-  public void setRawDataId(Long rawDataId) {
-    this.rawDataId = rawDataId;
+  public void setFileNames(
+      List<String> newFileNames)
+  {
+    this.fileNames = newFileNames;
   }
 }

@@ -6,5 +6,8 @@ public interface RawDataRepository
 {
   RawData findById(Long id);
 
+  RawData findByFileName(
+      String fileName);
+
   Boolean save(RawData rawData);
 }

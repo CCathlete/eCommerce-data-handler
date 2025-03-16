@@ -1,5 +1,8 @@
 package org.webcat.ecommerce.datahandler.domain.service.etl.implementations;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.webcat.ecommerce.datahandler.domain.model.entities.RawData;
 import org.webcat.ecommerce.datahandler.domain.service.etl.interfaces.ExtractData;
@@ -23,9 +26,20 @@ public class ExtractDataImpl
     this.repo = repo;
   }
 
+  /**
+   * Goes over a list of filenames and returns a list of the content of files.
+   */
   @Override
-  public RawData extract(Long id)
+  public ArrayList<RawData> extract(
+      List<String> fileNames)
   {
-    return this.repo.findById(id);
+    ArrayList<RawData> contentOfFiles =
+        new ArrayList<RawData>();
+    for (String fileName : fileNames)
+    {
+      contentOfFiles.add(this.repo
+          .findByFileName(fileName));
+    }
+    return contentOfFiles;
   }
 }
