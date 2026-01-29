@@ -38,10 +38,3 @@ Outline of the data handler
 
 #### **6. Collaboration and Scalable Data Solutions**
    - **Tools**: Hazelcast Jet, Spring Boot (for API integration).
----
-   - **Process**:
-     - **Containerize** the ETL pipeline, MySQL, and any necessary tools using **Docker**.
-     - Deploy it to the **cloud** for easier scaling and integration into larger business systems.
-   - **Outcome**: This is optional but aligns with the **cloud-based solutions** requirement.
-
----
